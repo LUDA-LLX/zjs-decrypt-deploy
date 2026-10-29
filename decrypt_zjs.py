@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-自动精灵(com.zdanjian.zdanjian) .zjs 加密脚本 一键解密工具
-支持自动精灵加密动作格式 encryptVersion 1 / 2 / 3:
+ljzd 工具(com.zdanjian.zdanjian) .zjs 加密脚本 一键解密工具
+支持 App 加密动作格式 encryptVersion 1 / 2 / 3:
   v1: AES-CBC(PKCS5) key=callK, iv=ek16, 明文为 JSON 字符串
   v2: AES-CBC(PKCS5) key=ek16, iv=callK, 明文为 SJSON + Key1 混淆(encryptKey)
   v3: 双层 AES-CBC(PKCS5): 外层 key=callK iv=AES_IV, 内层 key=ek16 iv=AES_IV,
@@ -10,7 +10,7 @@
 
 密钥通过官方接口获取:
   GET {api}/runScript/checkEncryptInfo?id=<encryptId>
-  需带 ZDJL-* 签名头(登录 token、userId、deviceId、apk 签名、timestamp、sign)
+  需带签名头(登录 token、userId、deviceId、apk 签名、timestamp、sign)
 
 用法:
   python3 decrypt_zjs.py <文件.zjs> [文件2.zjs ...]
@@ -384,7 +384,7 @@ def fetch_encrypt_key(encrypt_id, token, user_id, device_id,
 
 
 def load_login_from_device(verbose=False):
-    """尝试直接读自动精灵 logged_user.json(需要权限/root)"""
+    """尝试直接读 App logged_user.json(需要权限/root)"""
     if os.path.exists(LOGIN_JSON_PATH):
         try:
             with open(LOGIN_JSON_PATH, encoding='utf-8') as f:
@@ -531,9 +531,9 @@ def resolve_login(args, verbose=False):
             token = j.get('token')
             user_id = j.get('userId')
             if verbose:
-                print('  登录态: 从设备自动精灵读取 userId=%s' % (j.get('userId') or ''))
+                print('  登录态: 从设备 App 读取 userId=%s' % (j.get('userId') or ''))
     if not token or not user_id:
-        raise RuntimeError('缺少登录态: 请用 --login-json / --token / --user-id, 或确保设备自动精灵已登录(root 自动读取)')
+        raise RuntimeError('缺少登录态: 请用 --login-json / --token / --user-id, 或确保设备 App 已登录(root 自动读取)')
     device_id = args.device_id or read_device_id(verbose)
     return {
         'token': token,
@@ -546,11 +546,11 @@ def resolve_login(args, verbose=False):
 
 
 def main(argv=None):
-    ap = argparse.ArgumentParser(description='自动精灵 .zjs 加密脚本一键解密')
+    ap = argparse.ArgumentParser(description='ljzd .zjs 加密脚本一键解密')
     ap.add_argument('files', nargs='+', help='输入 .zjs 文件(可多个)')
     ap.add_argument('-o', '--out', default=None, help='输出目录(默认与输入同目录)')
     ap.add_argument('--json', dest='want_json', action='store_true', help='额外输出完整可读 .json')
-    ap.add_argument('--login-json', help='自动精灵 logged_user.json 路径(离线提供登录态)')
+    ap.add_argument('--login-json', help='App logged_user.json 路径(离线提供登录态)')
     ap.add_argument('--token'); ap.add_argument('--user-id')
     ap.add_argument('--device-id'); ap.add_argument('--apk-sign')
     ap.add_argument('--channel'); ap.add_argument('--api')
@@ -577,7 +577,7 @@ def main(argv=None):
             pass
         if args.want_json:
             json_path = os.path.join(outdir, base + '_解密.json')
-            full = {'header': hdr, 'note': '自动精灵 zjs 解密结果',
+            full = {'header': hdr, 'note': 'ljzd 解密结果',
                     'decrypted_actions': [json.loads(l) for l in out_lines[1:]]}
             with open(json_path, 'w', encoding='utf-8') as w:
                 json.dump(full, w, ensure_ascii=False, indent=1)
